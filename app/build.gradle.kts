@@ -51,6 +51,15 @@ android {
 
 dependencies {
 
+    implementation("androidx.navigation:navigation-compose:2.4.0-alpha10")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    //retrofit implementation
+    val retrofitVersion = "2.11.0"
+    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
+
+    //other implementation
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
