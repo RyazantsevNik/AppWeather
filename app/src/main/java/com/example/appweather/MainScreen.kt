@@ -1,7 +1,9 @@
 package com.example.appweather
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
@@ -30,7 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,8 +49,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.appweather.api.Hour
 import com.example.appweather.api.NetworkResponce
 import com.example.appweather.api.WeatherModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+
+@Composable
+fun BackgroundImage() {
+    val painter = painterResource(id = R.drawable.background)
+
+    Image(
+        painter = painter,
+        contentDescription = "Background Image",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+}
 
 @Composable
 fun AppNavigation(viewModel: WeatherViewModel) {
@@ -64,6 +89,10 @@ fun MainScreen(viewModel: WeatherViewModel, navController: NavController) {
     val weatherResult = viewModel.weatherResult.observeAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        BackgroundImage()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,48 +101,54 @@ fun MainScreen(viewModel: WeatherViewModel, navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Верхняя часть экрана
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = city,
-                    onValueChange = { city = it },
-                    label = { Text(text = "Enter name of city for search") }
-                )
-                IconButton(onClick = {
-                    viewModel.getData(city)
-                    keyboardController?.hide()
-                }) {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = city,
+                        onValueChange = { city = it },
+                        label = { Text(text = "Enter name of city for search") },
+                        textStyle = TextStyle(color = Color.White)
+                    )
+                    IconButton(onClick = {
+                        viewModel.getData(city)
+                        keyboardController?.hide()
+                    }) {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = Color.White)
+                    }
                 }
             }
+            item {
+                when (val result = weatherResult.value) {
+                    is NetworkResponce.Error -> {
+                        Text(text = result.message, color = Color.White)
+                    }
 
-            when (val result = weatherResult.value) {
-                is NetworkResponce.Error -> {
-                    Text(text = result.message)
+                    NetworkResponce.Loading -> CircularProgressIndicator()
+                    is NetworkResponce.Success -> {
+                        WeatherDetails(result.data)
+                    }
+
+                    null -> {}
                 }
-                NetworkResponce.Loading -> CircularProgressIndicator()
-                is NetworkResponce.Success -> {
-                    WeatherDetails(result.data)
-                }
-                null -> {}
             }
         }
 
         BottomButtons(navController = navController)
-
+    }
     }
 }
 
@@ -134,9 +169,10 @@ fun WeatherDetails(data: WeatherModel) {
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = "Location icon",
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(40.dp),
+                tint = Color.White
             )
-            Text(text = data.location.name, fontSize = 30.sp)
+            Text(text = data.location.name, fontSize = 30.sp, color = Color.White)
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = data.location.country, fontSize = 18.sp, color = Color.Gray)
 
@@ -144,10 +180,11 @@ fun WeatherDetails(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "${data.current.temp_c} ° c",
+            text = "${data.current.temp_c.toDoubleOrNull()?.toInt() ?: 0} °C",
             fontSize = 56.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.White
 
         )
         AsyncImage(
@@ -158,15 +195,21 @@ fun WeatherDetails(data: WeatherModel) {
         Text(
             text = data.current.condition.text,
             fontSize = 20.sp,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.White
         )
         Spacer(modifier = Modifier.height(16.dp))
+
+        HourlyForecast(data)
+
         Card {
             Column(modifier = Modifier.fillMaxWidth()) {
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
+
                     WeatherKeyVal("Humidity", data.current.humidity + "%")
                     WeatherKeyVal("Wind speed", data.current.wind_kph + " km/h")
                 }
@@ -184,6 +227,7 @@ fun WeatherDetails(data: WeatherModel) {
                     WeatherKeyVal("Local time", data.location.localtime.split(" ")[1])
                     WeatherKeyVal("Local date", data.location.localtime.split(" ")[0])
                 }
+
             }
         }
 
@@ -203,6 +247,74 @@ fun WeatherKeyVal(key: String, value: String) {
 }
 
 @Composable
+fun HourlyForecast(data: WeatherModel) {
+
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    val currentDate = dateFormat.parse(data.location.localtime)
+    val calendar = Calendar.getInstance()
+    if (currentDate != null) {
+        calendar.time = currentDate
+    }
+
+    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+
+    val todayHours = data.forecast.forecastday[0].hour.filter { it.time.substring(11, 13).toInt() >= currentHour }
+    val tomorrowHours = if (data.forecast.forecastday.size > 1) {
+        data.forecast.forecastday[1].hour.take(24 - todayHours.size)
+    } else {
+        emptyList()
+    }
+
+    val hourlyData = todayHours + tomorrowHours
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(hourlyData) { hourData ->
+            HourlyWeatherItem(hourData, currentHour)
+        }
+    }
+}
+
+@Composable
+fun HourlyWeatherItem(hourlyWeather: Hour, currentHour: Int) {
+    Card( modifier = Modifier
+        .padding(1.dp).width(45.dp)
+        .fillMaxWidth(0.1f)
+        , shape = RoundedCornerShape(8.dp)
+         ) {
+        Column(
+            modifier = Modifier
+                .background(Color.Transparent)
+                .padding(4.dp).fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val hourText = if (hourlyWeather.time.substring(11, 13).toInt() == currentHour) {
+                "Now"
+            } else {
+                hourlyWeather.time.substring(11, 16)
+            }
+            Text(text = hourText,fontSize = 12.sp,
+                fontWeight = FontWeight.Bold)
+            AsyncImage(
+                model = "https:${hourlyWeather.condition.icon}",
+                contentDescription = "Condition icon",
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "${hourlyWeather.temp_c.toDoubleOrNull()?.toInt() ?: 0} °C",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+        }
+    }
+}
+
+@Composable
 fun BottomButtons(navController: NavController) {
     Row(
         modifier = Modifier
@@ -211,17 +323,16 @@ fun BottomButtons(navController: NavController) {
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom
     ) {
-        // Кнопка для перехода на экран "Today"
+
         Button(
-            modifier = Modifier.weight(1f), // Все кнопки одинакового размера
+            modifier = Modifier.weight(1f),
             onClick = { navController.navigate("main_screen") }
         ) {
             Text(text = "Today")
         }
-
-        // Кнопка для перехода на экран "Weekly"
+        Spacer(modifier = Modifier.width(18.dp))
         Button(
-            modifier = Modifier.weight(1f), // Все кнопки одинакового размера
+            modifier = Modifier.weight(1f),
             onClick = { navController.navigate("second_screen") }
         ) {
             Text(text = "Weekly")
@@ -232,16 +343,15 @@ fun BottomButtons(navController: NavController) {
 
 @Composable
 fun SecondScreen(navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.Bottom) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.Bottom
+    ) {
         BottomButtons(navController = navController)
     }
 }
-
-
-
-
-
-
 
 
 
