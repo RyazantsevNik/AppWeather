@@ -51,6 +51,8 @@ android {
 
 dependencies {
 
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.compose.material:material:1.5.1")
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha10")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
     implementation("io.coil-kt:coil-compose:2.6.0")

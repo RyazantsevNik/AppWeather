@@ -7,7 +7,9 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material.Scaffold
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.rememberNavController
 import com.example.appweather.ui.theme.AppWeatherTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,7 +22,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppWeatherTheme {
-                AppNavigation(weatherViewModel)
+                val navController = rememberNavController()
+                Scaffold(
+                    bottomBar = {
+                        BottomNavigationBar(navController = navController)
+                    }
+                ) { padding ->
+
+                    AppNavigation(
+                        navController = navController,
+                        viewModel = weatherViewModel,
+                        padding = padding
+                    )
+                }
             }
         }
         hideSystemUI()
