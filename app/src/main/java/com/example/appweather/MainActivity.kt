@@ -3,10 +3,13 @@ package com.example.appweather
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
@@ -15,12 +18,25 @@ import com.example.appweather.ui.theme.AppWeatherTheme
 class MainActivity : ComponentActivity() {
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideNavigationRunnable = Runnable { hideSystemUI() }
+    private lateinit var locationHelper: LocationHelper
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            locationHelper.getLastKnownLocation()
+        } else {
+            Toast.makeText(this, "Location permission is required to access your location.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
-        enableEdgeToEdge()
+        locationHelper = LocationHelper(this, requestPermissionLauncher)
         setContent {
+
             AppWeatherTheme {
                 val navController = rememberNavController()
                 Scaffold(
@@ -28,24 +44,17 @@ class MainActivity : ComponentActivity() {
                         BottomNavigationBar(navController = navController)
                     }
                 ) { padding ->
-
                     AppNavigation(
                         navController = navController,
                         viewModel = weatherViewModel,
-                        padding = padding
+                        padding = padding,
+                        locationHelper = locationHelper
                     )
                 }
             }
         }
-        hideSystemUI()
-        @Suppress("DEPRECATION")
-        window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
 
-            if (visibility and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION == 0) {
-                hideHandler.removeCallbacks(hideNavigationRunnable)
-                hideHandler.postDelayed(hideNavigationRunnable, 3000)
-            }
-        }
+        hideSystemUI()
     }
 
     private fun hideSystemUI() {
@@ -62,7 +71,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        hideHandler.removeCallbacks(hideNavigationRunnable) // Убираем обработчики при уничтожении активности
+        hideHandler.removeCallbacks(hideNavigationRunnable)
     }
-
 }
