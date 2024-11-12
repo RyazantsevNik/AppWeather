@@ -1,7 +1,5 @@
 package com.example.appweather
 
-
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,15 +58,19 @@ import java.util.Locale
 import androidx.compose.material.BottomNavigation
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.icons.filled.DateRange
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.Divider
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil.request.Parameters
+import androidx.navigation.navArgument
 import com.example.appweather.api.Forecastday
 import com.example.appweather.bottom_navigation_bar.Constants
 import com.github.mikephil.charting.data.Entry
@@ -79,7 +80,6 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.formatter.ValueFormatter
-
 
 @Composable
 fun AppNavigation(
@@ -97,7 +97,19 @@ fun AppNavigation(
             MainScreen(viewModel = viewModel, locationHelper = locationHelper)
         }
         composable("second_screen") {
-            SecondScreen(viewModel = viewModel)
+            SecondScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(
+            route = "weekly_day_info/{dayIndex}",
+            arguments = listOf(navArgument("dayIndex") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val dayIndex = backStackEntry.arguments?.getInt("dayIndex") ?: 0
+            val weeklyWeather = viewModel.getForecastDay(dayIndex)
+            if (weeklyWeather != null) {
+                WeeklyDayInfo(weeklyWeather = weeklyWeather, navController = navController)
+            } else {
+                Text("Загрузка данных или ошибка")
+            }
         }
     }
 }
@@ -129,7 +141,6 @@ fun BottomNavigationBar(navController: NavController) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-
                         Icon(
                             imageVector = navItem.icon,
                             contentDescription = navItem.label,
@@ -141,8 +152,6 @@ fun BottomNavigationBar(navController: NavController) {
                                 Modifier.size(24.dp)
                             }, Color.White
                         )
-
-
                         if (isSelected) {
                             Text(
                                 text = navItem.label,
@@ -189,9 +198,7 @@ fun MainScreen(viewModel: WeatherViewModel, locationHelper: LocationHelper) {
         }
     }
 
-
     Box(modifier = Modifier.fillMaxSize()) {
-
         BackgroundImage()
 
         Column(
@@ -221,7 +228,7 @@ fun MainScreen(viewModel: WeatherViewModel, locationHelper: LocationHelper) {
                             value = city,
                             onValueChange = { city = it },
                             label = { Text(text = "Enter name of city for search") },
-                            textStyle = TextStyle(color = Color.White)
+                            textStyle = TextStyle(color = Color.White),
                         )
                         IconButton(onClick = {
                             viewModel.getData(city)
@@ -239,7 +246,7 @@ fun MainScreen(viewModel: WeatherViewModel, locationHelper: LocationHelper) {
                 item {
                     when (val result = weatherResult.value) {
                         is NetworkResponce.Error -> {
-                            Text(text = result.message, color = Color.White)
+                            Text(text = result.message, color = Color.Red)
                         }
 
                         NetworkResponce.Loading -> CircularProgressIndicator()
@@ -261,7 +268,8 @@ fun WeatherDetails(data: WeatherModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier = Modifier
@@ -308,47 +316,90 @@ fun WeatherDetails(data: WeatherModel) {
 
         HourlyForecast(data)
 
-        Card {
-            Column(modifier = Modifier.fillMaxWidth()) {
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-
-                    WeatherKeyVal("Humidity", data.current.humidity + "%")
-                    WeatherKeyVal("Wind speed", data.current.wind_kph + " km/h")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    WeatherKeyVal("UV", data.current.uv)
-                    WeatherKeyVal("Pressure", data.current.pressure_mb + " mb")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    WeatherKeyVal("Local time", data.location.localtime.split(" ")[1])
-                    WeatherKeyVal("Local date", data.location.localtime.split(" ")[0])
-                }
-
-            }
-        }
+        WeatherDetailsCard(data)
 
     }
 }
 
 @Composable
-fun WeatherKeyVal(key: String, value: String) {
+fun WeatherDetailsCard(data: WeatherModel) {
+
     Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    )
-    {
-        Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text(text = key, fontWeight = FontWeight.SemiBold, color = Color.Gray)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            WeatherBlock("💧 Влажность", "${data.current.humidity}%", modifier = Modifier.weight(1f))
+            WeatherBlock("🌞 UV индекс", data.current.uv, modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            WeatherBlock(
+                "💨 Скорость ветра",
+                "${data.current.wind_kph} km/h",
+                modifier = Modifier.weight(1f)
+            )
+            WeatherBlock(
+                "🔧 Давление",
+                "${data.current.pressure_mb} mb",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            WeatherBlock(
+                "⏰ Время",
+                data.location.localtime.split(" ")[1],
+                modifier = Modifier.weight(1f)
+            )
+            WeatherBlock(
+                "📅 Дата",
+                formatDate(data.location.localtime.split(" ")[0]),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun WeatherBlock(key: String, value: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(Color(0xFFB3E5FC), shape = RoundedCornerShape(8.dp))
+            .padding(12.dp)
+            .height(80.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = key,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF002845)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF002845)
+            )
+        }
     }
 }
 
@@ -388,82 +439,86 @@ fun HourlyForecast(data: WeatherModel) {
 
 @Composable
 fun HourlyWeatherItem(hourlyWeather: Hour, currentHour: Int) {
-    Card(
+
+    val hourText = if (hourlyWeather.time.substring(11, 13).toInt() == currentHour) {
+        "Сейчас"
+    } else {
+        hourlyWeather.time.substring(11, 16)
+    }
+
+    Column(
         modifier = Modifier
-            .padding(1.dp)
-            .width(45.dp)
-            .fillMaxWidth(0.1f), shape = RoundedCornerShape(8.dp)
+            .background(Color(0xFFB3E5FC), shape = RoundedCornerShape(16.dp))
+            .padding(10.dp)
+            .width(60.dp)
+            .height(100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .background(Color.Transparent)
-                .padding(4.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val hourText = if (hourlyWeather.time.substring(11, 13).toInt() == currentHour) {
-                "Now"
-            } else {
-                hourlyWeather.time.substring(11, 16)
-            }
-            Text(
-                text = hourText, fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-            AsyncImage(
-                model = "https:${hourlyWeather.condition.icon}",
-                contentDescription = "Condition icon",
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "${hourlyWeather.temp_c.toDoubleOrNull()?.toInt() ?: 0} °C",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(text = hourText, color = Color(0xFF002845), fontWeight = FontWeight.Bold)
+        AsyncImage(
+            model = "https:${hourlyWeather.condition.icon}".replace("64x64", "128x128"),
+            contentDescription = "Hourly icon",
+            modifier = Modifier.size(50.dp)
+        )
+        Text(
+            text = "${hourlyWeather.temp_c.toDoubleOrNull()?.toInt() ?: 0}°C",
+            color = Color(0xFF002845),
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
-fun WeeklyForecast(data: WeatherModel) {
+fun WeeklyForecast(data: WeatherModel, navController: NavController) {
 
     val dailyData = data.forecast.forecastday
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
-            Text(
-                text = "Погода на ближайшие дни",
-                fontWeight = FontWeight.Bold,
-                fontSize = 35.sp,
-                lineHeight = 40.sp,
-                color = Color.White,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-                    .padding(start = 8.dp)
-            )
+                    .padding(top = 8.dp)
+            ) {
+                // Заголовок текста
+                Text(
+                    text = "ПРОГНОЗ ПО ДНЯМ",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp,
+                    lineHeight = 38.sp,
+                    color = Color(0xFFB3E5FC),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp)
+                )
+            }
         }
+
         items(dailyData) { dayData ->
-            WeeklyWeatherItem(dayData, dailyData.indexOf(dayData))
+            WeeklyWeatherItem(dayData, dailyData.indexOf(dayData), navController)
         }
         item {
             Card(
                 modifier = Modifier.padding(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0x80FFFFFF) // Полупрозрачный белый цвет
+                    containerColor = Color(0xFFB3E5FC)
                 ),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 Column {
                     Text(
-                        modifier = Modifier.padding(start = 6.dp, top = 6.dp),
+                        modifier = Modifier.padding(start = 16.dp, top = 12.dp),
                         text = "График температуры",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.DarkGray
+                        color = Color(0xFF002845)
                     )
                     TemperatureChart(data.forecast.forecastday)
                 }
@@ -474,7 +529,7 @@ fun WeeklyForecast(data: WeatherModel) {
 }
 
 @Composable
-fun WeeklyWeatherItem(weeklyWeather: Forecastday, dayIndex: Int) {
+fun WeeklyWeatherItem(weeklyWeather: Forecastday, dayIndex: Int, navController: NavController) {
     val dayDescription = when (dayIndex) {
         0 -> "Сегодня"
         1 -> "Завтра"
@@ -486,80 +541,270 @@ fun WeeklyWeatherItem(weeklyWeather: Forecastday, dayIndex: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .height(70.dp), // Увеличиваем высоту для дополнительного текста
+            .height(80.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0x80FFFFFF) // Полупрозрачный белый цвет
+            containerColor = Color(0xFFB3E5FC)
         ),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(6.dp),
+        onClick = {
+            navController.navigate("weekly_day_info/$dayIndex")
+        }
     ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = formatDate(weeklyWeather.date),
-                    color = Color.White,
-                    fontSize = 18.sp
-                )
-                Text(
-                    text = dayDescription,
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-            }
-
-            AsyncImage(
-                model = "https:${weeklyWeather.day.condition.icon}",
-                contentDescription = "Condition icon",
-                modifier = Modifier.size(40.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(
-                    text = "День",
-                    color = Color.White,
-                    fontSize = 12.sp,
-
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = formatDate(weeklyWeather.date),
+                        color = Color(0xFF002845),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
                     )
-                Text(
-                    text = "${weeklyWeather.day.maxtemp_c.toDoubleOrNull()?.toInt() ?: 0}°",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                    Text(
+                        text = dayDescription,
+                        color = Color(0xFF002845),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Light
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(8.dp))
+                AsyncImage(
+                    model = "https:${weeklyWeather.day.condition.icon}",
+                    contentDescription = "Condition icon",
+                    modifier = Modifier.size(45.dp)
+                )
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Ночь",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                )
-                Text(
-                    text = "${weeklyWeather.day.mintemp_c.toDoubleOrNull()?.toInt() ?: 0}°",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "День",
+                        color = Color(0xFF002845),
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        text = "${weeklyWeather.day.maxtemp_c.toDoubleOrNull()?.toInt() ?: 0}°",
+                        color = Color.Red,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Ночь",
+                        color = Color(0xFF002845),
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        text = "${weeklyWeather.day.mintemp_c.toDoubleOrNull()?.toInt() ?: 0}°",
+                        color = Color.Blue,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+fun WeeklyDayInfo(weeklyWeather: Forecastday, navController: NavController) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF2193b0),
+                        Color(0xFF6dd5ed)
+                    )
+                )
+            )
+            .padding(16.dp)
+    ) {
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = "Погода на ${formatDate(weeklyWeather.date)}",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.85f)),
+                elevation = CardDefaults.cardElevation(12.dp) // Увеличиваем высоту тени для карточки
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        model = "https:${
+                            weeklyWeather.day.condition.icon.replace(
+                                "64x64",
+                                "128x128"
+                            )
+                        }",
+                        contentDescription = "Condition icon",
+                        modifier = Modifier.size(100.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Макс: ${weeklyWeather.day.maxtemp_c}°C",
+                            fontSize = 22.sp,
+                            color = Color(0xFFE57373),
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Мин: ${weeklyWeather.day.mintemp_c}°C",
+                            fontSize = 22.sp,
+                            color = Color(0xFF64B5F6),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = weeklyWeather.day.condition.text,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Divider(
+                        color = Color.LightGray,
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
+
+                    ) {
+
+                        InfoBlock(
+                            title = "💧Влажность",
+                            value = "${weeklyWeather.day.avghumidity}%",
+                            backgroundColor = Color(0xFFE1F5FE)
+                        )
+
+                        InfoBlock(
+                            title = "☔Осадки",
+                            value = "${weeklyWeather.day.daily_chance_of_rain}%",
+                            backgroundColor = Color(0xFFF1F8E9)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+
+                        InfoBlock(
+                            title = "💨Ветер",
+                            value = "${weeklyWeather.day.maxwind_kph} км/ч",
+                            backgroundColor = Color(0xFFFFF9C4)
+                        )
+
+                        InfoBlock(
+                            title = "☀️УФ-индекс",
+                            value = weeklyWeather.day.uv,
+                            backgroundColor = Color(0xFFFFF3E0)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoBlock(title: String, value: String, backgroundColor: Color) {
+    Card(
+        modifier = Modifier
+            .size(120.dp)
+            .padding(4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+    }
+}
+
 
 @Composable
 fun TemperatureChart(data: List<Forecastday>) {
@@ -570,71 +815,71 @@ fun TemperatureChart(data: List<Forecastday>) {
         Entry(index.toFloat(), day.day.mintemp_c.toFloatOrNull() ?: 0f)
     }
 
-    // Настраиваем наборы данных
+
     val maxTempDataSet = LineDataSet(maxTempEntries, "Температура днем").apply {
         color = android.graphics.Color.RED
-        lineWidth = 8f
+        lineWidth = 4f
         setDrawCircles(true)
         setDrawValues(false)
         setCircleColor(android.graphics.Color.RED)
-        circleRadius = 8f
+        circleRadius = 5f
         mode = LineDataSet.Mode.CUBIC_BEZIER
     }
     val minTempDataSet = LineDataSet(minTempEntries, "Температура ночью").apply {
         color = android.graphics.Color.BLUE
-        lineWidth = 8f
+        lineWidth = 4f
         setDrawCircles(true)
         setDrawValues(false)
         setCircleColor(android.graphics.Color.BLUE)
-        circleRadius = 8f
+        circleRadius = 5f
         mode = LineDataSet.Mode.CUBIC_BEZIER
     }
 
-    // Отображаем LineChart в Compose
+
     AndroidView(
         factory = { context ->
             LineChart(context).apply {
                 this.data = LineData(maxTempDataSet, minTempDataSet)
 
-
-                // Настройка оси X
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     setDrawGridLines(false)
-                    textColor = android.graphics.Color.DKGRAY // Белый цвет текста оси X
+                    textColor = android.graphics.Color.DKGRAY
                     textSize = 14f
                     granularity = 1f
                     labelCount = data.size
                     valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
                             val index = value.toInt().coerceIn(0, data.size - 1)
-                            return formatDate(data[index].date) // Отображаем дату
+                            return formatDate(data[index].date)
                         }
                     }
                 }
 
-                // Настройка левой оси Y
                 axisLeft.apply {
                     setDrawGridLines(false)
-                    textColor = android.graphics.Color.DKGRAY // Белый цвет текста оси Y
+                    textColor = android.graphics.Color.DKGRAY
                     textSize = 14f
-                    axisMinimum = 0f
+                    valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float): String {
+                            return "${value.toInt()}°C"
+                        }
+                    }
+                    //axisMinimum = 0f
                 }
 
-                // Отключаем правую ось Y
                 axisRight.isEnabled = false
 
-                // Настраиваем легенду
+
                 legend.apply {
-                    textColor = android.graphics.Color.DKGRAY // Белый цвет текста легенды
+                    textColor = android.graphics.Color.DKGRAY
                     textSize = 14f
                     form = Legend.LegendForm.LINE
                 }
 
-                // Отключаем описание графика
                 description.isEnabled = false
 
-                invalidate() // Обновляем график
+                invalidate()
             }
         },
         modifier = Modifier
@@ -647,44 +892,42 @@ fun TemperatureChart(data: List<Forecastday>) {
 
 fun formatDate(dateString: String): String {
     return try {
+
         val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd MMMM", Locale("ru", "RU"))
         val date = inputFormat.parse(dateString)
+
+
         outputFormat.format(date!!)
     } catch (e: Exception) {
-        dateString // Если возникла ошибка, возвращаем оригинальную строку
+        dateString
     }
 }
 
 @Composable
-fun SecondScreen(viewModel: WeatherViewModel) {
-    val city by viewModel.city.observeAsState("")
+fun SecondScreen(viewModel: WeatherViewModel, navController: NavController) {
+
     val weatherResult by viewModel.weatherResult.observeAsState()
 
     BackgroundImage()
 
     when (val result = weatherResult) {
         is NetworkResponce.Loading -> {
-            CircularProgressIndicator()  // Показать индикатор загрузки
+            CircularProgressIndicator()
         }
 
         is NetworkResponce.Error -> {
-            Text(text = result.message, color = Color.Black)  // Показать сообщение об ошибке
+            Text(text = result.message, color = Color.Red, fontSize = 30.sp)
         }
 
         is NetworkResponce.Success -> {
-            // Данные о погоде загружены успешно, отобразим их
+
             val weatherData = result.data
-            //Text(text = weatherData.forecast.forecastday[0].date)
-            WeeklyForecast(weatherData)
+            WeeklyForecast(weatherData, navController)
         }
 
         null -> {
-            Text(text = "Пожалуйста, введите город", color = Color.Gray)
+            Text(text = "Пожалуйста, введите город", color = Color.White)
         }
     }
 }
-
-
-
-
