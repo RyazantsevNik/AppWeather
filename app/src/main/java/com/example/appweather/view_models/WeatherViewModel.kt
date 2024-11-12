@@ -1,4 +1,4 @@
-package com.example.appweather
+package com.example.appweather.view_models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,11 +7,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appweather.location_helper.LocationHelper
 import com.example.appweather.api.Constant
-import com.example.appweather.api.Forecastday
+import com.example.appweather.api.weather_info.Forecastday
 import com.example.appweather.api.NetworkResponce
 import com.example.appweather.api.RetrofitInstance
-import com.example.appweather.api.WeatherModel
+import com.example.appweather.api.weather_info.WeatherModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -89,7 +90,6 @@ class WeatherViewModel : ViewModel() {
             (_weatherResult.value as? NetworkResponce.Success)?.data?.forecast?.forecastday
         return forecastDays?.getOrNull(dayIndex)
     }
-
 }
 
 

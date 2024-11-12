@@ -1,4 +1,4 @@
-package com.example.appweather.api
+package com.example.appweather.api.weather_info
 
 data class Astro(
     val is_moon_up: String,
