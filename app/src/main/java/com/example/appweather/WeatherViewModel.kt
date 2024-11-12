@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appweather.api.Constant
+import com.example.appweather.api.Forecastday
 import com.example.appweather.api.NetworkResponce
 import com.example.appweather.api.RetrofitInstance
 import com.example.appweather.api.WeatherModel
@@ -25,9 +26,9 @@ class WeatherViewModel : ViewModel() {
     }
 
 
-
     var hasLoadedLocation by mutableStateOf(false)
         private set
+
     fun setLocationLoaded() {
         hasLoadedLocation = true
     }
@@ -53,7 +54,7 @@ class WeatherViewModel : ViewModel() {
 
     private val weatherApi = RetrofitInstance.weatherApi
     private val _weatherResult = MutableLiveData<NetworkResponce<WeatherModel>>()
-    val weatherResult : LiveData<NetworkResponce<WeatherModel>> = _weatherResult
+    val weatherResult: LiveData<NetworkResponce<WeatherModel>> = _weatherResult
 
 
     fun getData(city: String) {
@@ -70,11 +71,12 @@ class WeatherViewModel : ViewModel() {
                         _weatherResult.value = NetworkResponce.Error("Нет данных")
                     }
                 } else {
-                    _weatherResult.value = NetworkResponce.Error("Ошибка сервера: ${response.code()}")
+                    _weatherResult.value =
+                        NetworkResponce.Error("Ошибка сервера: ${response.code()}")
                 }
-            }catch (e : Exception){
+            } catch (e: Exception) {
                 _weatherResult.value = NetworkResponce.Error("Ошибка загрузки данных")
-            }catch (e: IOException) {
+            } catch (e: IOException) {
                 _weatherResult.value = NetworkResponce.Error("Ошибка сети")
             }
 
@@ -82,4 +84,12 @@ class WeatherViewModel : ViewModel() {
 
     }
 
+    fun getForecastDay(dayIndex: Int): Forecastday? {
+        val forecastDays =
+            (_weatherResult.value as? NetworkResponce.Success)?.data?.forecast?.forecastday
+        return forecastDays?.getOrNull(dayIndex)
+    }
+
 }
+
+
