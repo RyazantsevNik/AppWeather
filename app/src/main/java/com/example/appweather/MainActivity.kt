@@ -6,7 +6,9 @@ import androidx.activity.compose.setContent
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.appweather.bottom_navigation_bar.Constants
 import com.example.appweather.interfaces.AppNavigation
 import com.example.appweather.interfaces.BottomNavigationBar
 import com.example.appweather.location_helper.LocationHelper

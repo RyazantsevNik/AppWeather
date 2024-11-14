@@ -1,5 +1,6 @@
 package com.example.appweather.view_models
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +13,7 @@ import com.example.appweather.api.Constant
 import com.example.appweather.api.weather_info.Forecastday
 import com.example.appweather.api.NetworkResponce
 import com.example.appweather.api.RetrofitInstance
+import com.example.appweather.api.weather_info.Hour
 import com.example.appweather.api.weather_info.WeatherModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -35,15 +37,19 @@ class WeatherViewModel : ViewModel() {
     }
 
     // Функция для загрузки и обработки локации
-    fun loadLocationData(locationHelper: LocationHelper, coroutineScope: CoroutineScope) {
+    fun loadLocationData(locationHelper: LocationHelper, coroutineScope: CoroutineScope, forceUpdate: Boolean = false) {
+        if (hasLoadedLocation && !forceUpdate) return
+
         locationHelper.loadLastLocation { latitude, longitude ->
             if (latitude != 0.0 && longitude != 0.0) {
                 // Если локация существует, загружаем данные
+                Log.d("ASD","DA")
                 coroutineScope.launch {
                     getData("$latitude,$longitude")
 
                 }
             } else {
+                Log.d("ASD","NET")
                 // Если локации нет, запрашиваем разрешение
                 locationHelper.checkLocationPermission()
             }
@@ -90,6 +96,16 @@ class WeatherViewModel : ViewModel() {
             (_weatherResult.value as? NetworkResponce.Success)?.data?.forecast?.forecastday
         return forecastDays?.getOrNull(dayIndex)
     }
+
+    fun getHoursForDay(dayIndex: Int): List<Hour>? {
+        val forecastDays = (_weatherResult.value as? NetworkResponce.Success)?.data?.forecast?.forecastday
+        return forecastDays?.getOrNull(dayIndex)?.hour
+    }
+
+    fun getHour(dayIndex: Int, hourIndex: Int): Hour? {
+        return getHoursForDay(dayIndex)?.getOrNull(hourIndex)
+    }
+
 }
 
 

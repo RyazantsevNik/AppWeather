@@ -52,14 +52,24 @@ android {
 
 dependencies {
 
+    //SwipeRefresh
+    implementation ("androidx.compose.material3:material3:1.3.0")
+
+    //Graph
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
+    //Datastore
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
+    //location
     implementation ("com.google.android.gms:play-services-location:21.0.1")
+
+    //different
     implementation("androidx.compose.material:material:1.5.1")
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha10")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
     implementation("io.coil-kt:coil-compose:2.6.0")
+
     //retrofit implementation
     val retrofitVersion = "2.11.0"
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
