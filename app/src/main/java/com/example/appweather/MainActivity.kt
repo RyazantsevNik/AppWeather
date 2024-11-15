@@ -6,14 +6,12 @@ import androidx.activity.compose.setContent
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.appweather.bottom_navigation_bar.Constants
-import com.example.appweather.interfaces.AppNavigation
-import com.example.appweather.interfaces.BottomNavigationBar
+import com.example.appweather.app_ui.AppNavigation
+import com.example.appweather.app_ui.BottomNavigationBar
 import com.example.appweather.location_helper.LocationHelper
 import com.example.appweather.view_models.WeatherViewModel
-import com.example.appweather.ui.theme.AppWeatherTheme
+import com.example.appweather.app_ui.theme.AppWeatherTheme
 import com.example.appweather.utils.hideSystemUI
 
 class MainActivity : ComponentActivity() {

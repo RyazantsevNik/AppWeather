@@ -1,4 +1,4 @@
-package com.example.appweather.interfaces
+package com.example.appweather.app_ui
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -52,7 +52,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.example.appweather.api.weather_info.Hour
-import com.example.appweather.api.NetworkResponce
+import com.example.appweather.api.NetworkResponse
 import com.example.appweather.api.weather_info.WeatherModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -334,15 +334,15 @@ fun MainScreen(
                 }
                 item {
                     when (val result = weatherResult.value) {
-                        is NetworkResponce.Error -> {
+                        is NetworkResponse.Error -> {
                             Text(text = result.message, color = Color.Red)
                         }
 
-                        NetworkResponce.Loading -> {
+                        NetworkResponse.Loading -> {
                             CircularProgressIndicator()
                         }
 
-                        is NetworkResponce.Success -> {
+                        is NetworkResponse.Success -> {
                             WeatherDetails(result.data, navController)
                         }
 
@@ -726,15 +726,15 @@ fun SecondScreen(viewModel: WeatherViewModel, navController: NavController) {
     BackgroundImage()
 
     when (val result = weatherResult) {
-        is NetworkResponce.Loading -> {
+        is NetworkResponse.Loading -> {
             CircularProgressIndicator()
         }
 
-        is NetworkResponce.Error -> {
+        is NetworkResponse.Error -> {
             Text(text = result.message, color = Color.Red, fontSize = 30.sp)
         }
 
-        is NetworkResponce.Success -> {
+        is NetworkResponse.Success -> {
 
             val weatherData = result.data
             WeeklyForecast(weatherData, navController)
