@@ -10,11 +10,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appweather.location_helper.LocationHelper
 import com.example.appweather.api.Constant
-import com.example.appweather.api.weather_info.Forecastday
+import com.example.appweather.api.models.Forecastday
 import com.example.appweather.api.NetworkResponse
 import com.example.appweather.api.RetrofitInstance
-import com.example.appweather.api.weather_info.Hour
-import com.example.appweather.api.weather_info.WeatherModel
+import com.example.appweather.api.models.Hour
+import com.example.appweather.api.models.WeatherModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException

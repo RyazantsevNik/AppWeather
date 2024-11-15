@@ -51,9 +51,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
-import com.example.appweather.api.weather_info.Hour
+import com.example.appweather.api.models.Hour
 import com.example.appweather.api.NetworkResponse
-import com.example.appweather.api.weather_info.WeatherModel
+import com.example.appweather.api.models.WeatherModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -84,7 +84,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.appweather.R
 import com.example.appweather.view_models.WeatherViewModel
-import com.example.appweather.api.weather_info.Forecastday
+import com.example.appweather.api.models.Forecastday
 import com.example.appweather.bottom_navigation_bar.Constants
 import com.example.appweather.location_helper.LocationHelper
 import com.github.mikephil.charting.data.Entry
@@ -258,15 +258,13 @@ fun MainScreen(
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -528,9 +526,8 @@ fun HourlyForecast(data: WeatherModel, navController: NavController) {
 
     LazyRow(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(8.dp)
     ) {
         hourlyData.forEach { (dayIndex, hours) ->
             items(hours) { hourData ->
