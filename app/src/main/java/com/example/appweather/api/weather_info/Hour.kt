@@ -1,4 +1,4 @@
-package com.example.appweather.api
+package com.example.appweather.api.weather_info
 
 data class Hour(
     val chance_of_rain:String,
