@@ -1,6 +1,7 @@
 package com.example.appweather
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 //noinspection UsingMaterialAndMaterial3Libraries
@@ -22,7 +23,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
-        locationHelper = LocationHelper(this, weatherViewModel)
+        locationHelper = LocationHelper(this@MainActivity, weatherViewModel)
+
+        locationHelper.checkLocationPermission()
 
         setContent {
             AppWeatherTheme {
@@ -41,6 +44,6 @@ class MainActivity : ComponentActivity() {
         }
 
         hideSystemUI(window)
-        locationHelper.checkLocationPermission()
+
     }
 }

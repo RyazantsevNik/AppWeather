@@ -16,7 +16,9 @@ import com.example.appweather.api.RetrofitInstance
 import com.example.appweather.api.models.Hour
 import com.example.appweather.api.models.WeatherModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class WeatherViewModel : ViewModel() {
@@ -65,30 +67,43 @@ class WeatherViewModel : ViewModel() {
 
 
     fun getData(city: String) {
+        // Загружаем данные в фоновом потоке
+        _weatherResult.postValue(NetworkResponse.Loading) // Используем postValue
 
-        _weatherResult.value = NetworkResponse.Loading
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = weatherApi.getWeather(Constant.apiKey, city, 7)
                 if (response.isSuccessful) {
                     val weatherData = response.body()
                     if (weatherData != null) {
-                        _weatherResult.value = NetworkResponse.Success(weatherData)
+                        // Обновляем LiveData в главном потоке
+                        withContext(Dispatchers.Main) {
+                            _weatherResult.postValue(NetworkResponse.Success(weatherData)) // Используем postValue
+                        }
                     } else {
-                        _weatherResult.value = NetworkResponse.Error("Нет данных")
+                        // Обновляем LiveData с ошибкой в главном потоке
+                        withContext(Dispatchers.Main) {
+                            _weatherResult.postValue(NetworkResponse.Error("Нет данных")) // Используем postValue
+                        }
                     }
                 } else {
-                    _weatherResult.value =
-                        NetworkResponse.Error("Ошибка сервера: ${response.code()}")
+                    // Обновляем LiveData с ошибкой в главном потоке
+                    withContext(Dispatchers.Main) {
+                        _weatherResult.postValue(NetworkResponse.Error("Ошибка сервера: ${response.code()}")) // Используем postValue
+                    }
                 }
             } catch (e: Exception) {
-                _weatherResult.value = NetworkResponse.Error("Ошибка загрузки данных")
+                // Обновляем LiveData с ошибкой в главном потоке
+                withContext(Dispatchers.Main) {
+                    _weatherResult.postValue(NetworkResponse.Error("Ошибка загрузки данных")) // Используем postValue
+                }
             } catch (e: IOException) {
-                _weatherResult.value = NetworkResponse.Error("Ошибка сети")
+                // Обновляем LiveData с ошибкой в главном потоке
+                withContext(Dispatchers.Main) {
+                    _weatherResult.postValue(NetworkResponse.Error("Ошибка сети")) // Используем postValue
+                }
             }
-
         }
-
     }
 
     fun getForecastDay(dayIndex: Int): Forecastday? {

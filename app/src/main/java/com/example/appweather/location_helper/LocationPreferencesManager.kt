@@ -1,6 +1,7 @@
 package com.example.appweather.location_helper
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,10 +18,12 @@ class LocationPreferencesManager(private val context: Context) {
     }
 
     suspend fun saveLocation(latitude: Double, longitude: Double) {
+        Log.d("LocationPreferencesManager", "Saving location: $latitude, $longitude")
         context.dataStore.edit { preferences ->
             preferences[LATITUDE_KEY] = latitude
             preferences[LONGITUDE_KEY] = longitude
         }
+        Log.d("LocationPreferencesManager", "Location saved")
     }
 
     val lastLocation: Flow<Pair<Double, Double>> = context.dataStore.data

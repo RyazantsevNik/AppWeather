@@ -1,8 +1,14 @@
 package com.example.appweather.location_helper
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.Bundle
+import android.os.Looper
+import android.os.Handler
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,7 +33,7 @@ class LocationHelper(
             if (isGranted) {
                 getLastKnownLocation()
             } else {
-                Toast.makeText(context, "Location permission is required to access your location.", Toast.LENGTH_SHORT).show()
+                showToast("Для доступа к вашему местоположению требуется разрешение на определение местоположения.")
             }
         }
 
@@ -43,27 +49,66 @@ class LocationHelper(
     }
 
     fun getLastKnownLocation() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location ->
-                    if (location != null) {
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            showToast("Разрешение на местоположение не предоставлено.")
+            return
+        }
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    val latitude = location.latitude
+                    val longitude = location.longitude
+
+                    // Сохранение локации в DataStore
+                    CoroutineScope(Dispatchers.IO).launch {
+                        locationPreferencesManager.saveLocation(latitude, longitude)
+                    }
+
+                    // Обновление ViewModel с новой локацией
+                    weatherViewModel.getData("$latitude,$longitude")
+
+                    showToast("Latitude: $latitude, Longitude: $longitude")
+                } else {
+                    getLocationFromNetwork()
+                }
+            }
+            .addOnFailureListener { exception ->
+                showToast("Ошибка в получении локации: ${exception.message}")
+            }
+    }
+
+    @SuppressLint("SuspiciousIndentation")
+    private fun getLocationFromNetwork() {
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            showToast("Разрешение на сетевое местоположение не предоставлено")
+            return
+        }
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        try {
+            locationManager.requestSingleUpdate(
+                LocationManager.NETWORK_PROVIDER,
+                object : android.location.LocationListener {
+                    override fun onLocationChanged(location: Location) {
                         val latitude = location.latitude
                         val longitude = location.longitude
 
-                        // Сохранение локации в DataStore
-                        CoroutineScope(Dispatchers.IO).launch {
-                            locationPreferencesManager.saveLocation(latitude, longitude)
-                        }
-
-                        // Обновление ViewModel с новой локацией
                         weatherViewModel.getData("$latitude,$longitude")
-
-                        Toast.makeText(context, "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT).show()
                     }
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(context, "Failed to get location: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+
+                    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+                    override fun onProviderEnabled(provider: String) {}
+                    override fun onProviderDisabled(provider: String) {}
+                },
+                Looper.getMainLooper()
+            )
+        } catch (e: SecurityException) {
+            showToast("Unable to request network location.")
         }
     }
 
@@ -75,4 +120,9 @@ class LocationHelper(
         }
     }
 
+    private fun showToast(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 }

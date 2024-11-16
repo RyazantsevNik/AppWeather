@@ -344,7 +344,9 @@ fun MainScreen(
                             WeatherDetails(result.data, navController)
                         }
 
-                        else -> {} // Обработка других случаев, включая null
+                        else -> {
+                            Text(text = "Пожалуйста, введите город", color = Color.White)
+                        } // Обработка других случаев, включая null
                     }
                 }
             }
