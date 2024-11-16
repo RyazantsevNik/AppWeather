@@ -3,12 +3,14 @@ package com.example.appweather.location_helper
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.os.Handler
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +36,7 @@ class LocationHelper(
                 getLastKnownLocation()
             } else {
                 showToast("Для доступа к вашему местоположению требуется разрешение на определение местоположения.")
+                promptToEnableLocation()
             }
         }
 
@@ -49,13 +52,18 @@ class LocationHelper(
                     weatherViewModel.getData("$latitude,$longitude")
                     showToast("Latitude: $latitude, Longitude: $longitude")
                 } else {
-                    // Если сохранённой локации нет, запрашиваем текущую
                     getLastKnownLocation()
                 }
             }
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+    }
+
+
+    private fun promptToEnableLocation() {
+        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        context.startActivity(intent)
     }
 
     fun getLastKnownLocation() {
