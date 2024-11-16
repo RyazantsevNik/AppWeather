@@ -42,7 +42,17 @@ class LocationHelper(
                 context, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            getLastKnownLocation()
+            loadLastLocation { latitude, longitude ->
+                // Если локация загружена, используем её.
+                if (latitude != 0.0 && longitude != 0.0) {
+                    // Обновляем ViewModel с сохранённой локацией
+                    weatherViewModel.getData("$latitude,$longitude")
+                    showToast("Latitude: $latitude, Longitude: $longitude")
+                } else {
+                    // Если сохранённой локации нет, запрашиваем текущую
+                    getLastKnownLocation()
+                }
+            }
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
