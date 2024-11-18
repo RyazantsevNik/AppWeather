@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "location_preferences")
@@ -32,4 +33,12 @@ class LocationPreferencesManager(private val context: Context) {
             val longitude = preferences[LONGITUDE_KEY] ?: 0.0
             Pair(latitude, longitude)
         }
+
+    suspend fun isLocationSaved(): Boolean {
+        val lastLocation = context.dataStore.data.map { preferences ->
+            preferences[LATITUDE_KEY] != null &&
+                    preferences[LONGITUDE_KEY] != null
+        }.first()
+        return lastLocation
+    }
 }

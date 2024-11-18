@@ -11,11 +11,15 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.Handler
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.example.appweather.view_models.WeatherViewModel
+import com.google.android.gms.common.api.internal.LifecycleFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
@@ -32,13 +36,25 @@ class LocationHelper(
 
     private val requestPermissionLauncher = (context as ComponentActivity)
         .registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                getLastKnownLocation()
-            } else {
-                showToast("Для доступа к вашему местоположению требуется разрешение на определение местоположения.")
-                promptToEnableLocation()
+            CoroutineScope(Dispatchers.Main).launch {
+                val isLocationSaved = LocationPreferencesManager(context).isLocationSaved()
+
+                if (isGranted) {
+                    getLastKnownLocation()
+                } else {
+                    showToast("Для доступа к вашему местоположению требуется разрешение на определение местоположения.")
+
+                    if (!isLocationSaved) {
+                        Log.d("LocationHelper", "No saved location found. Prompting user to enable location.")
+                        promptToEnableLocation()
+                    } else {
+                        Log.d("LocationHelper", "Location is already saved. Skipping prompt.")
+                    }
+                }
             }
         }
+
+
 
     fun checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(
