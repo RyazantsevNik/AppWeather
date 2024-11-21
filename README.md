@@ -76,6 +76,15 @@ ____
 
 **5. Для обновления местоположения используйте свайп сверху вниз**
 
+**6. Для изменения API key измените [файл](./app/src/main/java/com/example/appweather/api/Constant.kt):**
+
+```Kotlin
+object Constant {
+    val apiKey = "Enter your API key"
+}
+
+```
+
 ____
 
 ## Поддержка и отзывы
