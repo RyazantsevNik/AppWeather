@@ -45,13 +45,11 @@ class WeatherViewModel : ViewModel() {
         locationHelper.loadLastLocation { latitude, longitude ->
             if (latitude != 0.0 && longitude != 0.0) {
                 // Если локация существует, загружаем данные
-                Log.d("ASD","DA")
                 coroutineScope.launch {
                     getData("$latitude,$longitude")
 
                 }
             } else {
-                Log.d("ASD","NET")
                 // Если локации нет, запрашиваем разрешение
                 locationHelper.checkLocationPermission()
             }
@@ -83,24 +81,24 @@ class WeatherViewModel : ViewModel() {
                     } else {
                         // Обновляем LiveData с ошибкой в главном потоке
                         withContext(Dispatchers.Main) {
-                            _weatherResult.postValue(NetworkResponse.Error("Нет данных")) // Используем postValue
+                            _weatherResult.postValue(NetworkResponse.Error("Нет данных"))
                         }
                     }
                 } else {
                     // Обновляем LiveData с ошибкой в главном потоке
                     withContext(Dispatchers.Main) {
-                        _weatherResult.postValue(NetworkResponse.Error("Ошибка сервера: ${response.code()}")) // Используем postValue
+                        _weatherResult.postValue(NetworkResponse.Error("Ошибка сервера: ${response.code()}"))
                     }
                 }
             } catch (e: Exception) {
                 // Обновляем LiveData с ошибкой в главном потоке
                 withContext(Dispatchers.Main) {
-                    _weatherResult.postValue(NetworkResponse.Error("Ошибка загрузки данных")) // Используем postValue
+                    _weatherResult.postValue(NetworkResponse.Error("Ошибка загрузки данных"))
                 }
             } catch (e: IOException) {
                 // Обновляем LiveData с ошибкой в главном потоке
                 withContext(Dispatchers.Main) {
-                    _weatherResult.postValue(NetworkResponse.Error("Ошибка сети")) // Используем postValue
+                    _weatherResult.postValue(NetworkResponse.Error("Ошибка сети"))
                 }
             }
         }
@@ -112,7 +110,7 @@ class WeatherViewModel : ViewModel() {
         return forecastDays?.getOrNull(dayIndex)
     }
 
-    fun getHoursForDay(dayIndex: Int): List<Hour>? {
+    private fun getHoursForDay(dayIndex: Int): List<Hour>? {
         val forecastDays = (_weatherResult.value as? NetworkResponse.Success)?.data?.forecast?.forecastday
         return forecastDays?.getOrNull(dayIndex)?.hour
     }

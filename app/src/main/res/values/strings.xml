@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">AppWeather</string>
+    <string name="hourly_forecast">Часовой прогноз</string>
+    <string name="enter_city">Введите название города</string>
+    <string name="weather">ПОГОДА</string>
+    <string name="error_data">Ошибка загрузки данных</string>
+    <string name="max">Макс:</string>
+    <string name="min">Мин:</string>
+    <string name="degrees">°C</string>
+    <string name="humidity">💧 Влажность</string>
+    <string name="precipitation">☔ Осадки</string>
+    <string name="wind">💨 Ветер</string>
+    <string name="uf_index">☀️УФ-индекс</string>
+    <string name="temp">🌡️ Температура</string>
+    <string name="pressure">🌅 Давление</string>
+    <string name="day_forecast">ПРОГНОЗ ПО ДНЯМ</string>
+    <string name="temp_chart">График температуры</string>
+    <string name="day">День</string>
+    <string name="night">Ночь</string>
+    <string name="now">Сейчас</string>
+    <string name="time">⏰ Время</string>
+    <string name="date">📅 Дата</string>
+    <string name="temp_day">Температура днем</string>
+    <string name="temp_night">Температура ночью</string>
 </resources>

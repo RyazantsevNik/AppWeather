@@ -1,15 +1,14 @@
 package com.example.appweather
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Scaffold
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
-import com.example.appweather.app_ui.AppNavigation
-import com.example.appweather.app_ui.BottomNavigationBar
+import com.example.appweather.app_ui.navigation.AppNavigation
+import com.example.appweather.app_ui.navigation.BottomNavigationBar
 import com.example.appweather.location_helper.LocationHelper
 import com.example.appweather.view_models.WeatherViewModel
 import com.example.appweather.app_ui.theme.AppWeatherTheme
