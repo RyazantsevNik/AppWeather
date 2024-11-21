@@ -69,7 +69,7 @@ fun WeeklyForecast(data: WeatherModel, navController: NavController) {
             ) {
                 Column {
                     Text(
-                        modifier = Modifier.padding(start = 16.dp, top = 12.dp),
+                        modifier = Modifier.padding(start = 12.dp, top = 12.dp),
                         text = stringResource(id = R.string.temp_chart),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,

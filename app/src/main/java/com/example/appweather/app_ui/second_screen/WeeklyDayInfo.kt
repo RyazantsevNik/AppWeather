@@ -124,8 +124,6 @@ fun WeeklyDayInfo(weeklyWeather: Forecastday, navController: NavController) {
                         )
                     }
 
-
-
                     Text(
                         text = weeklyWeather.day.condition.text,
                         fontSize = 20.sp,
@@ -133,8 +131,6 @@ fun WeeklyDayInfo(weeklyWeather: Forecastday, navController: NavController) {
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
-
 
                     Divider(
                         color = Color.LightGray,
@@ -190,7 +186,7 @@ fun WeeklyDayInfo(weeklyWeather: Forecastday, navController: NavController) {
 fun InfoBlock(title: String, value: String, backgroundColor: Color) {
     Card(
         modifier = Modifier
-            .size(120.dp)
+            .size(130.dp)
             .padding(4.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),

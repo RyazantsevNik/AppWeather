@@ -87,13 +87,12 @@ fun WeeklyWeatherItem(weeklyWeather: Forecastday, dayIndex: Int, navController: 
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
                     Text(
                         text = stringResource(id = R.string.day),
                         color = Color(0xFF002845),
                         fontSize = 14.sp,
+                        modifier = Modifier.padding(end = 4.dp)
                     )
                     Text(
                         text = "${weeklyWeather.day.maxtemp_c.toDoubleOrNull()?.toInt() ?: 0}°",
