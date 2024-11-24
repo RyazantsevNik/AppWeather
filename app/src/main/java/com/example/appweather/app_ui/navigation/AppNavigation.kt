@@ -12,18 +12,21 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.appweather.app_ui.main_screen.FavoritesScreen
 import com.example.appweather.R
 import com.example.appweather.app_ui.main_screen.HourlyWeatherDetailScreen
 import com.example.appweather.app_ui.main_screen.MainScreen
 import com.example.appweather.app_ui.second_screen.SecondScreen
 import com.example.appweather.app_ui.second_screen.WeeklyDayInfo
 import com.example.appweather.location_helper.LocationHelper
+import com.example.appweather.view_models.FavoritesViewModel
 import com.example.appweather.view_models.WeatherViewModel
 
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    viewModel: WeatherViewModel,
+    weatherViewModel: WeatherViewModel, // для других экранов
+    favoritesViewModel: FavoritesViewModel, // для экрана избранных городов
     padding: PaddingValues,
     locationHelper: LocationHelper
 ) {
@@ -34,20 +37,23 @@ fun AppNavigation(
     ) {
         composable("main_screen") {
             MainScreen(
-                viewModel = viewModel,
+                viewModel = weatherViewModel,
                 locationHelper = locationHelper,
                 navController = navController
             )
         }
         composable("second_screen") {
-            SecondScreen(viewModel = viewModel, navController = navController)
+            SecondScreen(viewModel = weatherViewModel, navController = navController)
+        }
+        composable("favorites_screen") {
+            FavoritesScreen(viewModel = favoritesViewModel, onBack = { navController.popBackStack() }) // передаем FavoritesViewModel
         }
         composable(
             route = "weekly_day_info/{dayIndex}",
             arguments = listOf(navArgument("dayIndex") { type = NavType.IntType })
         ) { backStackEntry ->
             val dayIndex = backStackEntry.arguments?.getInt("dayIndex") ?: 0
-            val weeklyWeather = viewModel.getForecastDay(dayIndex)
+            val weeklyWeather = weatherViewModel.getForecastDay(dayIndex)
             if (weeklyWeather != null) {
                 WeeklyDayInfo(weeklyWeather = weeklyWeather, navController = navController)
             } else {
@@ -63,7 +69,7 @@ fun AppNavigation(
         ) { backStackEntry ->
             val dayIndex = backStackEntry.arguments?.getInt("dayIndex") ?: 0
             val hourIndex = backStackEntry.arguments?.getInt("hourIndex") ?: 0
-            val hour = viewModel.getHour(dayIndex, hourIndex)
+            val hour = weatherViewModel.getHour(dayIndex, hourIndex)
             hour?.let {
                 HourlyWeatherDetailScreen(
                     hourlyWeather = it,

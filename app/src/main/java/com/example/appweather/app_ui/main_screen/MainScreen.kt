@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +33,7 @@ import androidx.navigation.NavController
 import com.example.appweather.api.NetworkResponse
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -99,7 +102,7 @@ fun MainScreen(
                 item {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth().height(70.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -115,7 +118,6 @@ fun MainScreen(
                                 textStyle = TextStyle(color = Color.White),
                                 singleLine = true  //Отключил перенос строки
                             )
-
                             IconButton(
                                 modifier = Modifier.weight(0.1f),
                                 onClick = {
@@ -141,9 +143,20 @@ fun MainScreen(
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(0.7f)
+                                modifier = Modifier.weight(0.7f).padding(start = 8.dp)
                             )
+                            IconButton(
+                                    modifier = Modifier.weight(0.1f),
+                            onClick = { navController.navigate("favorites_screen")
+                            }){
+                                Icon(
+                                    imageVector = Icons.Default.Place,
+                                    contentDescription = "Place",
+                                    tint = Color.White
+                                )
+                            }
                         }
+
                         IconButton(
                             modifier = Modifier.weight(0.1f),
                             onClick = {
