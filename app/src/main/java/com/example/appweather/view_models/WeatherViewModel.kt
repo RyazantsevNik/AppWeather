@@ -66,7 +66,7 @@ class WeatherViewModel : ViewModel() {
 
     fun getData(city: String) {
         // Загружаем данные в фоновом потоке
-        _weatherResult.postValue(NetworkResponse.Loading) // Используем postValue
+        _weatherResult.postValue(NetworkResponse.Loading)
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -87,7 +87,7 @@ class WeatherViewModel : ViewModel() {
                 } else {
                     // Обновляем LiveData с ошибкой в главном потоке
                     withContext(Dispatchers.Main) {
-                        _weatherResult.postValue(NetworkResponse.Error("Ошибка сервера: ${response.code()}"))
+                        _weatherResult.postValue(NetworkResponse.Error("Некорректный город"))
                     }
                 }
             } catch (e: Exception) {

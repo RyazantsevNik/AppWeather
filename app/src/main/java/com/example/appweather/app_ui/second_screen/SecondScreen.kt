@@ -1,9 +1,13 @@
 package com.example.appweather.app_ui.second_screen
 
 import android.util.Log
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
@@ -19,7 +23,7 @@ fun SecondScreen(viewModel: WeatherViewModel, navController: NavController) {
     val weatherResult by viewModel.weatherResult.observeAsState()
 
     BackgroundImage()
-
+Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
     when (val result = weatherResult) {
         is NetworkResponse.Loading -> {
             androidx.compose.material3.CircularProgressIndicator()
@@ -29,7 +33,6 @@ fun SecondScreen(viewModel: WeatherViewModel, navController: NavController) {
             androidx.compose.material3.Text(
                 text = result.message,
                 color = Color.Red,
-                fontSize = 30.sp
             )
         }
 
@@ -40,7 +43,11 @@ fun SecondScreen(viewModel: WeatherViewModel, navController: NavController) {
         }
 
         else -> {
-            androidx.compose.material3.Text(text = stringResource(id = R.string.enter_city), color = Color.White)
+            androidx.compose.material3.Text(
+                text = stringResource(id = R.string.enter_city),
+                color = Color.White
+            )
         }
     }
+}
 }

@@ -22,4 +22,6 @@
     <string name="date">📅 Дата</string>
     <string name="temp_day">Температура днем</string>
     <string name="temp_night">Температура ночью</string>
+    <string name="favoriteh6">Управление городами</string>
+    <string name="no_favorite_cities">Нет избранных городов</string>
 </resources>

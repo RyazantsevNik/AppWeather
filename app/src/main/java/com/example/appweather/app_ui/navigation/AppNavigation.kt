@@ -12,7 +12,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.appweather.app_ui.main_screen.FavoritesScreen
+import com.example.appweather.app_ui.favorites_screen.FavoritesScreen
 import com.example.appweather.R
 import com.example.appweather.app_ui.main_screen.HourlyWeatherDetailScreen
 import com.example.appweather.app_ui.main_screen.MainScreen
@@ -46,7 +46,11 @@ fun AppNavigation(
             SecondScreen(viewModel = weatherViewModel, navController = navController)
         }
         composable("favorites_screen") {
-            FavoritesScreen(viewModel = favoritesViewModel, onBack = { navController.popBackStack() }) // передаем FavoritesViewModel
+            FavoritesScreen(
+                weatherViewModel = weatherViewModel,
+                favoritesViewModel = favoritesViewModel,
+                navController = navController,
+                onBack = { navController.popBackStack() }) // передаем FavoritesViewModel
         }
         composable(
             route = "weekly_day_info/{dayIndex}",

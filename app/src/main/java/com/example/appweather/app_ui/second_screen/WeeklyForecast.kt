@@ -31,8 +31,7 @@ fun WeeklyForecast(data: WeatherModel, navController: NavController) {
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

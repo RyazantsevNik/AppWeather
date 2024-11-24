@@ -33,6 +33,8 @@ import androidx.navigation.NavController
 import com.example.appweather.api.NetworkResponse
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -102,7 +104,8 @@ fun MainScreen(
                 item {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth().height(70.dp),
+                            .fillMaxWidth()
+                            .height(70.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -113,10 +116,13 @@ fun MainScreen(
                                     .weight(0.7f)
                                     .focusRequester(focusRequester),
                                 value = city,
-                                onValueChange = { city = it },
+                                onValueChange = { newText ->
+                                    // Оставляем только буквы
+                                    city = newText.filter { it.isLetter() || it == ' '}
+                                },
                                 label = { Text(text = stringResource(id = R.string.enter_city)) },
                                 textStyle = TextStyle(color = Color.White),
-                                singleLine = true  //Отключил перенос строки
+                                singleLine = true  // Отключен перенос строки
                             )
                             IconButton(
                                 modifier = Modifier.weight(0.1f),
@@ -143,15 +149,18 @@ fun MainScreen(
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(0.7f).padding(start = 8.dp)
+                                modifier = Modifier
+                                    .weight(0.7f)
+                                    .padding(start = 8.dp)
                             )
                             IconButton(
-                                    modifier = Modifier.weight(0.1f),
-                            onClick = { navController.navigate("favorites_screen")
-                            }){
+                                modifier = Modifier.weight(0.1f),
+                                onClick = {
+                                    navController.navigate("favorites_screen")
+                                }) {
                                 Icon(
-                                    imageVector = Icons.Default.Place,
-                                    contentDescription = "Place",
+                                    imageVector = Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite",
                                     tint = Color.White
                                 )
                             }
@@ -194,7 +203,10 @@ fun MainScreen(
                         }
 
                         else -> {
-                            Text(text = stringResource(id = R.string.enter_city), color = Color.White)
+                            Text(
+                                text = stringResource(id = R.string.enter_city),
+                                color = Color.White
+                            )
                         } // Обработка других случаев, включая null
                     }
                 }
